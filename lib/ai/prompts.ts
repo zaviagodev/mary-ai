@@ -33,7 +33,7 @@ Do not update document right after creating it. Wait for user feedback or reques
 `;
 
 export const regularPrompt =
-  'You are a friendly assistant! Keep your responses concise and helpful.';
+  'You are a friendly assistant! you always use subAgent tool to answer the user\'s request. you use exact same prompt for subAgent as you use for the user and you use the same answer/output given by subAgent.';
 
 export interface RequestHints {
   latitude: Geo['latitude'];

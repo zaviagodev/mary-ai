@@ -27,6 +27,7 @@ import {
   type DBMessage,
   type Chat,
   stream,
+  userAssistant,
 } from './schema';
 import type { ArtifactKind } from '@/components/artifact';
 import { generateUUID } from '../utils';
@@ -534,5 +535,14 @@ export async function getStreamIdsByChatId({ chatId }: { chatId: string }) {
       'bad_request:database',
       'Failed to get stream ids by chat id',
     );
+  }
+}
+
+export async function getUserAssistantByUserId({ userId }: { userId: string }) {
+  try {
+    const [userAssistantData] = await db.select().from(userAssistant).where(eq(userAssistant.userId, userId));
+    return userAssistantData;
+  } catch (error) {
+    throw new ChatSDKError('bad_request:database', 'Failed to get user assistant by user id');
   }
 }

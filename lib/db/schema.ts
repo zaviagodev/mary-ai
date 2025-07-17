@@ -168,3 +168,18 @@ export const stream = pgTable(
 );
 
 export type Stream = InferSelectModel<typeof stream>;
+
+export const userAssistant = pgTable(
+  'UserAssistant',
+  {
+    id: uuid('id').primaryKey().notNull().defaultRandom(),
+    userId: uuid('userId')
+      .notNull()
+      .references(() => user.id),
+    assistantName: varchar('assistantName', { length: 128 }).notNull(),
+    assistantId: varchar('assistantId', { length: 64 }).notNull(),
+    threadId: varchar('threadId', { length: 64 }).notNull(),
+  }
+);
+
+export type UserAssistant = InferSelectModel<typeof userAssistant>;

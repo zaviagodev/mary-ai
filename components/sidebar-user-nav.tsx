@@ -1,6 +1,6 @@
 'use client';
 
-import { ChevronUp } from 'lucide-react';
+import { ChevronDown, ChevronUp } from 'lucide-react';
 import Image from 'next/image';
 import type { User } from 'next-auth';
 import { signOut, useSession } from 'next-auth/react';
@@ -31,7 +31,7 @@ export function SidebarUserNav({ user }: { user: User }) {
   const isGuest = guestRegex.test(data?.user?.email ?? '');
 
   return (
-    <SidebarMenu>
+    <SidebarMenu className="w-50">
       <SidebarMenuItem>
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
@@ -62,7 +62,7 @@ export function SidebarUserNav({ user }: { user: User }) {
                 <span data-testid="user-email" className="truncate">
                   {isGuest ? 'Guest' : user?.email}
                 </span>
-                <ChevronUp className="ml-auto" />
+                <ChevronDown className="ml-auto" />
               </SidebarMenuButton>
             )}
           </DropdownMenuTrigger>
@@ -98,7 +98,7 @@ export function SidebarUserNav({ user }: { user: User }) {
                     router.push('/login');
                   } else {
                     signOut({
-                      redirectTo: '/',
+                      redirectTo: '/login',
                     });
                   }
                 }}
