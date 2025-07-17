@@ -224,7 +224,7 @@ export async function POST(request: Request) {
         });
       },
       onError: (error) => {
-        console.error('[POST] Error occurred in stream:', error?.message ?? error);
+        console.error('[POST] Error occurred in stream:', error);
         return 'Oops, an error occurred!';
       },
     });
