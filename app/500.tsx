@@ -1,3 +1,5 @@
+'use client';
+
 export default function Error500() {
   return (
     <div style={{ textAlign: 'center', marginTop: '10vh' }}>
