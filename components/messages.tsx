@@ -49,12 +49,12 @@ function PureMessages({
     >
       {messages.length === 0 && <Greeting />}
 
-      {messages.map((message, index) => (
+      {messages.slice(0, -1).map((message, index) => (
         <PreviewMessage
           key={message.id}
           chatId={chatId}
           message={message}
-          isLoading={status === 'streaming' && messages.length - 1 === index}
+          isLoading={false}
           vote={
             votes
               ? votes.find((vote) => vote.messageId === message.id)
@@ -69,9 +69,49 @@ function PureMessages({
         />
       ))}
 
-      {status === 'submitted' &&
-        messages.length > 0 &&
-        messages[messages.length - 1].role === 'user' && <ThinkingMessage />}
+      {/* Handle the last message specially to avoid blank state */}
+      {messages.length > 0 && (() => {
+        const lastMessage = messages[messages.length - 1];
+        // Check if the last message is an assistant message and if it has any visible part
+        const hasVisiblePart = lastMessage.parts?.some(
+          (part) => {
+            // Show if text, reasoning, or any tool output is available
+            if (part.type === 'text' && part.text?.trim().length > 0) return true;
+            if (part.type === 'reasoning' && part.text?.trim().length > 0) return true;
+            // For tool calls, only check state if it exists
+            if (part.type?.startsWith('tool-') && 'state' in part && part.state === 'output-available') return true;
+            return false;
+          }
+        );
+        if (
+          lastMessage.role === 'assistant' &&
+          (status === 'streaming' || status === 'submitted') &&
+          !hasVisiblePart
+        ) {
+          // Still waiting for a response, show thinking
+          return <ThinkingMessage />;
+        }
+        // Otherwise, show the message as normal
+        return (
+          <PreviewMessage
+            key={lastMessage.id}
+            chatId={chatId}
+            message={lastMessage}
+            isLoading={status === 'streaming'}
+            vote={
+              votes
+                ? votes.find((vote) => vote.messageId === lastMessage.id)
+                : undefined
+            }
+            setMessages={setMessages}
+            regenerate={regenerate}
+            isReadonly={isReadonly}
+            requiresScrollPadding={
+              hasSentMessage && messages.length - 1 === messages.length - 1
+            }
+          />
+        );
+      })()}
 
       <motion.div
         ref={messagesEndRef}
