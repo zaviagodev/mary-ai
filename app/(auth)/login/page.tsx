@@ -60,7 +60,7 @@ export default function Page() {
         </div>
         <AuthForm action={handleSubmit} defaultEmail={email}>
           <SubmitButton isSuccessful={isSuccessful}>Sign in</SubmitButton>
-          <p className="text-center text-sm text-gray-600 mt-4 dark:text-zinc-400">
+          {/* <p className="text-center text-sm text-gray-600 mt-4 dark:text-zinc-400">
             {"Don't have an account? "}
             <Link
               href="/register"
@@ -69,7 +69,7 @@ export default function Page() {
               Sign up
             </Link>
             {' for free.'}
-          </p>
+          </p> */}
         </AuthForm>
       </div>
     </div>
