@@ -5,6 +5,8 @@ import {
   smoothStream,
   stepCountIs,
   streamText,
+  AssistantContent,
+  UIMessagePart,
 } from 'ai';
 import { auth, type UserType } from '@/app/(auth)/auth';
 import { type RequestHints, systemPrompt } from '@/lib/ai/prompts';
@@ -16,8 +18,10 @@ import {
   getMessagesByChatId,
   saveChat,
   saveMessages,
+  getUserAssistantByUserId,
+  updateUserAssistantThreadId,
 } from '@/lib/db/queries';
-import { convertToUIMessages, generateUUID } from '@/lib/utils';
+import { convertToUIMessages, generateUUID, getTextFromMessage } from '@/lib/utils';
 import { generateTitleFromUserMessage } from '../../actions';
 import { createDocument } from '@/lib/ai/tools/create-document';
 import { updateDocument } from '@/lib/ai/tools/update-document';
@@ -35,9 +39,10 @@ import {
 } from 'resumable-stream';
 import { after } from 'next/server';
 import { ChatSDKError } from '@/lib/errors';
-import type { ChatMessage } from '@/lib/types';
+import type { ChatMessage, ChatTools, CustomUIDataTypes } from '@/lib/types';
 import type { ChatModel } from '@/lib/ai/models';
 import type { VisibilityType } from '@/components/visibility-selector';
+import OpenAI from 'openai';
 
 export const maxDuration = 60;
 
@@ -166,68 +171,146 @@ export async function POST(request: Request) {
     await createStreamId({ streamId, chatId: id });
     console.log('[POST] Stream ID created:', streamId);
 
-    const stream = createUIMessageStream({
-      execute: ({ writer: dataStream }) => {
-        console.log('[POST] Executing createUIMessageStream');
-        const result = streamText({
-          model: myProvider.languageModel(selectedChatModel),
-          system: systemPrompt({ selectedChatModel, requestHints }),
-          messages: convertToModelMessages(uiMessages),
-          stopWhen: stepCountIs(5),
-          experimental_activeTools:
-            selectedChatModel === 'chat-model-reasoning'
-              ? []
-              : [
-                  'getWeather',
-                  'subAgent',
-                  'createDocument',
-                  'updateDocument',
-                  'requestSuggestions',
-                ],
-          experimental_transform: smoothStream({ chunking: 'word' }),
-          tools: {
-            getWeather,
-            subAgent: callN8nFlow({session}),
-            createDocument: createDocument({ session, dataStream }),
-            updateDocument: updateDocument({ session, dataStream }),
-            requestSuggestions: requestSuggestions({
-              session,
-              dataStream,
-            }),
-          },
-          experimental_telemetry: {
-            isEnabled: isProductionEnvironment,
-            functionId: 'stream-text',
-          },
-        });
+    let stream;
+      stream = createUIMessageStream<ChatMessage>({
+        execute: async ({ writer: dataStream }) => {
+          // Docs for 'writer' (UIMessageStreamWriter):
+          // https://ai-sdk.dev/docs/ai-sdk-ui/chatbot#streaming-custom-data
+          console.log('[POST] Using OpenAI Assistants API handler');
+          const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+          
+          // Get user's assistant data from database
+          const userAssistant = await getUserAssistantByUserId({ userId: session.user.id });
+          if (!userAssistant) {
+            throw new Error('User assistant not found. Please set up your assistant first.');
+          }
+          
+          const assistantId = userAssistant.assistantId;
+          const userText = getTextFromMessage(message);
+          
+          // Use existing thread or create new one
+          let threadId = userAssistant.threadId;
+          if (!threadId) {
+            // Create a new thread if user doesn't have one
+            const thread = await openai.beta.threads.create({});
+            threadId = thread.id;
+            // Update the user's threadId in the database
+            await updateUserAssistantThreadId({ userId: session.user.id, threadId });
+          }
+          
+          // 2. Add user message
+          await openai.beta.threads.messages.create(threadId, {
+            role: 'user',
+            content: userText,
+          });
+          // 3. Start run and stream response
+          const runStream = openai.beta.threads.runs.stream(threadId, {
+            assistant_id: assistantId,
+          });
+          let msgId = generateUUID();
 
-        result.consumeStream();
+          for await (const event of runStream) {
+            console.log('[POST] Event:', event.event);
+            const assistantEventMap = {
+              'thread.run.step.created': 'start-step',
+              'thread.message.created': 'text-start',
+              'thread.message.delta': 'text-delta',
+              'thread.message.completed': 'text-end',
+              'thread.run.step.completed': 'finish-step',
+              'thread.run.completed': 'finish',
+            }
 
-        dataStream.merge(
-          result.toUIMessageStream({
-            sendReasoning: true,
-          }),
-        );
-      },
-      generateId: generateUUID,
-      onFinish: async ({ messages }) => {
-        console.log('[POST] onFinish saving messages:', messages);
-        await saveMessages({
-          messages: messages.map((message) => ({
-            id: message.id,
-            role: message.role,
-            parts: message.parts,
-            createdAt: new Date(),
-            attachments: [],
-            chatId: id,
-          })),
-        });
-      },
-      onError: (error) => {
-        console.error('[POST] Error occurred in stream:', error);
-        return 'Oops, an error occurred!';
-      },
-    });
+            const part = {
+              type: assistantEventMap[event.event as keyof typeof assistantEventMap] as any,
+              id:  (['text-start', 'text-delta', 'text-end'].includes(assistantEventMap[event.event as keyof typeof assistantEventMap])) ? msgId : undefined,
+              delta: (['text-delta'].includes(assistantEventMap[event.event as keyof typeof assistantEventMap])) ? event.data?.delta?.content[0]?.text?.value : undefined,
+            }
+
+            console.log('writing event:', part);
+            if (part.type) {
+              dataStream.write(part);
+            }
+          }
+        },
+        generateId: generateUUID,
+        onFinish: async ({ messages }) => {
+          console.log('[POST] onFinish saving messages:', messages);
+          await saveMessages({
+            messages: messages.map((message) => ({
+              id: message.id,
+              role: message.role,
+              parts: message.parts,
+              createdAt: new Date(),
+              attachments: [],
+              chatId: id,
+            })),
+          });
+        },
+        onError: (error) => {
+          console.error('[POST] Error occurred in stream:', error);
+          return 'Oops, an error occurred!';
+        },
+      });
+        // const result = streamText({
+        //   model: myProvider.languageModel(selectedChatModel),
+        //   system: systemPrompt({ selectedChatModel, requestHints }),
+        //   messages: convertToModelMessages(uiMessages),
+        //   stopWhen: stepCountIs(5),
+        //   experimental_activeTools:
+        //     selectedChatModel === 'chat-model-reasoning'
+        //       ? []
+        //       : [
+        //           'getWeather',
+        //           'subAgent',
+        //           'createDocument',
+        //           'updateDocument',
+        //           'requestSuggestions',
+        //         ],
+        //   experimental_transform: smoothStream({ chunking: 'word' }),
+        //   tools: {
+        //     getWeather,
+        //     subAgent: callN8nFlow({session}),
+        //     createDocument: createDocument({ session, dataStream }),
+        //     updateDocument: updateDocument({ session, dataStream }),
+        //     requestSuggestions: requestSuggestions({
+        //       session,
+        //       dataStream,
+        //     }),
+        //   },
+        //   experimental_telemetry: {
+        //     isEnabled: isProductionEnvironment,
+        //     functionId: 'stream-text',
+        //   },
+        // });
+
+        // result.consumeStream();
+        // runStream.
+
+        // dataStream.merge(
+        //   result.toUIMessageStream({
+        //     sendReasoning: true,
+        //   }),0002
+        // );
+      // }
+    //   generateId: generateUUID,
+    //   onFinish: async ({ messages }) => {
+    //     console.log('[POST] onFinish saving messages:', messages);
+    //     await saveMessages({
+    //       messages: messages.map((message) => ({
+    //         id: message.id,
+    //         role: message.role,
+    //         parts: message.parts,
+    //         createdAt: new Date(),
+    //         attachments: [],
+    //         chatId: id,
+    //       })),
+    //     });
+    //   },
+    //   onError: (error) => {
+    //     console.error('[POST] Error occurred in stream:', error);
+    //     return 'Oops, an error occurred!';
+    //   },
+    // });
 
     const streamContext = getStreamContext();
     console.log('[POST] Stream context:', streamContext);

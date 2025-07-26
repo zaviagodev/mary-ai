@@ -546,3 +546,11 @@ export async function getUserAssistantByUserId({ userId }: { userId: string }) {
     throw new ChatSDKError('bad_request:database', 'Failed to get user assistant by user id');
   }
 }
+
+export async function updateUserAssistantThreadId({ userId, threadId }: { userId: string; threadId: string }) {
+  try {
+    await db.update(userAssistant).set({ threadId }).where(eq(userAssistant.userId, userId));
+  } catch (error) {
+    throw new ChatSDKError('bad_request:database', 'Failed to update user assistant thread id');
+  }
+}
