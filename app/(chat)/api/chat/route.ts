@@ -209,11 +209,20 @@ export async function POST(request: Request) {
           });
           let msgId = generateUUID();
 
+          // Send a text-start event immediately to show the message structure
+          dataStream.write({
+            type: 'start-step',
+          });
+          dataStream.write({
+            type: 'text-start',
+            id: msgId,
+          });
+
           for await (const event of runStream) {
             console.log('[POST] Event:', event.event);
             const assistantEventMap = {
-              'thread.run.step.created': 'start-step',
-              'thread.message.created': 'text-start',
+              // 'thread.run.step.created': 'start-step',
+              // 'thread.message.created': 'text-start',
               'thread.message.delta': 'text-delta',
               'thread.message.completed': 'text-end',
               'thread.run.step.completed': 'finish-step',
