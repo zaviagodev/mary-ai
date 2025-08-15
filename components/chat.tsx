@@ -2,7 +2,7 @@
 
 import { DefaultChatTransport } from 'ai';
 import { useChat } from '@ai-sdk/react';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import useSWR, { useSWRConfig } from 'swr';
 import { ChatHeader } from '@/components/chat-header';
 import type { Vote } from '@/lib/db/schema';
@@ -49,6 +49,7 @@ export function Chat({
   const { setDataStream } = useDataStream();
 
   const [input, setInput] = useState<string>('');
+  const pendingAssistantMessageIdRef = useRef<string | null>(null);
 
   const {
     messages,
@@ -62,15 +63,21 @@ export function Chat({
     id,
     messages: initialMessages,
     experimental_throttle: 100,
-    generateId: generateUUID,
+    generateId: () => {
+      const id = generateUUID();
+      return id;
+    },
     transport: new DefaultChatTransport({
       api: '/api/chat',
       fetch: fetchWithErrorHandlers,
       prepareSendMessagesRequest({ messages, id, body }) {
+        // Pre-generate the assistant message ID so server can use the same ID
+        const assistantMessageId = pendingAssistantMessageIdRef.current;
         return {
           body: {
             id,
             message: messages.at(-1),
+            assistantMessageId, // Pass the pre-generated ID to server
             selectedChatModel: initialChatModel,
             selectedVisibilityType: visibilityType,
             ...body,

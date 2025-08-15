@@ -87,11 +87,13 @@ export async function POST(request: Request) {
     const {
       id,
       message,
+      assistantMessageId,
       selectedChatModel,
       selectedVisibilityType,
     }: {
       id: string;
       message: ChatMessage;
+      assistantMessageId: string;
       selectedChatModel: ChatModel['id'];
       selectedVisibilityType: VisibilityType;
     } = requestBody;
@@ -249,7 +251,7 @@ export async function POST(request: Request) {
           console.log('[POST] onFinish saving messages:', messages);
           await saveMessages({
             messages: messages.map((message) => ({
-              id: message.id,
+              id: message.role === 'assistant' ? assistantMessageId : message.id, // Use client-provided ID for assistant messages
               role: message.role,
               parts: message.parts,
               createdAt: new Date(),
