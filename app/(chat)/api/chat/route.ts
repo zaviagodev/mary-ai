@@ -19,7 +19,8 @@ import {
   saveChat,
   saveMessages,
   getUserAssistantByUserId,
-  updateUserAssistantThreadId,
+  getChatThreadByChatId,
+  createChatThread,
 } from '@/lib/db/queries';
 import { convertToUIMessages, generateUUID, getTextFromMessage } from '@/lib/utils';
 import { generateTitleFromUserMessage } from '../../actions';
@@ -188,14 +189,18 @@ export async function POST(request: Request) {
           const assistantId = userAssistant.assistantId;
           const userText = getTextFromMessage(message);
           
-          // Use existing thread or create new one
-          let threadId = userAssistant.threadId;
-          if (!threadId) {
-            // Create a new thread if user doesn't have one
+          // Use existing thread for this chat or create new one
+          let chatThreadData = await getChatThreadByChatId({ chatId: id });
+          let threadId: string;
+          
+          if (!chatThreadData) {
+            // Create a new thread if this chat doesn't have one
             const thread = await openai.beta.threads.create({});
             threadId = thread.id;
-            // Update the user's threadId in the database
-            await updateUserAssistantThreadId({ userId: session.user.id, threadId });
+            // Save the threadId for this specific chat
+            await createChatThread({ chatId: id, threadId });
+          } else {
+            threadId = chatThreadData.threadId;
           }
           
           // 2. Add user message
@@ -219,7 +224,6 @@ export async function POST(request: Request) {
           });
 
           for await (const event of runStream) {
-            console.log('[POST] Event:', event.event);
             const assistantEventMap = {
               // 'thread.run.step.created': 'start-step',
               // 'thread.message.created': 'text-start',
@@ -235,7 +239,6 @@ export async function POST(request: Request) {
               delta: (['text-delta'].includes(assistantEventMap[event.event as keyof typeof assistantEventMap])) ? event.data?.delta?.content[0]?.text?.value : undefined,
             }
 
-            console.log('writing event:', part);
             if (part.type) {
               dataStream.write(part);
             }

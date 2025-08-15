@@ -178,8 +178,21 @@ export const userAssistant = pgTable(
       .references(() => user.id),
     assistantName: varchar('assistantName', { length: 128 }).notNull(),
     assistantId: varchar('assistantId', { length: 64 }).notNull(),
-    threadId: varchar('threadId', { length: 64 }).notNull(),
   }
 );
 
 export type UserAssistant = InferSelectModel<typeof userAssistant>;
+
+export const chatThread = pgTable(
+  'ChatThread',
+  {
+    id: uuid('id').primaryKey().notNull().defaultRandom(),
+    chatId: uuid('chatId')
+      .notNull()
+      .references(() => chat.id),
+    threadId: varchar('threadId', { length: 64 }).notNull(),
+    createdAt: timestamp('createdAt').notNull(),
+  }
+);
+
+export type ChatThread = InferSelectModel<typeof chatThread>;

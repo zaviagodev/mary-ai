@@ -28,6 +28,8 @@ import {
   type Chat,
   stream,
   userAssistant,
+  chatThread,
+  type ChatThread,
 } from './schema';
 import type { ArtifactKind } from '@/components/artifact';
 import { generateUUID } from '../utils';
@@ -547,10 +549,32 @@ export async function getUserAssistantByUserId({ userId }: { userId: string }) {
   }
 }
 
-export async function updateUserAssistantThreadId({ userId, threadId }: { userId: string; threadId: string }) {
+export async function createChatThread({ chatId, threadId }: { chatId: string; threadId: string }) {
   try {
-    await db.update(userAssistant).set({ threadId }).where(eq(userAssistant.userId, userId));
+    const [chatThreadData] = await db.insert(chatThread).values({
+      chatId,
+      threadId,
+      createdAt: new Date(),
+    }).returning();
+    return chatThreadData;
   } catch (error) {
-    throw new ChatSDKError('bad_request:database', 'Failed to update user assistant thread id');
+    throw new ChatSDKError('bad_request:database', 'Failed to create chat thread');
+  }
+}
+
+export async function getChatThreadByChatId({ chatId }: { chatId: string }) {
+  try {
+    const [chatThreadData] = await db.select().from(chatThread).where(eq(chatThread.chatId, chatId));
+    return chatThreadData;
+  } catch (error) {
+    throw new ChatSDKError('bad_request:database', 'Failed to get chat thread by chat id');
+  }
+}
+
+export async function updateChatThread({ chatId, threadId }: { chatId: string; threadId: string }) {
+  try {
+    await db.update(chatThread).set({ threadId }).where(eq(chatThread.chatId, chatId));
+  } catch (error) {
+    throw new ChatSDKError('bad_request:database', 'Failed to update chat thread');
   }
 }

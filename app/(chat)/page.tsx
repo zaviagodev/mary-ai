@@ -16,22 +16,22 @@ export default async function Page() {
   }
 
   // Check for existing chats for the user
-  let userChatId: string | null = null;
-  if (session.user?.id) {
-    const chatsResult = await getChatsByUserId({
-      id: session.user.id,
-      limit: 1,
-      startingAfter: null,
-      endingBefore: null,
-    });
-    if (chatsResult.chats && chatsResult.chats.length > 0) {
-      userChatId = chatsResult.chats[0].id;
-    }
-  }
+  // let userChatId: string | null = null;
+  // if (session.user?.id) {
+  //   const chatsResult = await getChatsByUserId({
+  //     id: session.user.id,
+  //     limit: 1,
+  //     startingAfter: null,
+  //     endingBefore: null,
+  //   });
+  //   if (chatsResult.chats && chatsResult.chats.length > 0) {
+  //     userChatId = chatsResult.chats[0].id;
+  //   }
+  // }
 
-  if (userChatId) {
-    redirect(`/chat/${userChatId}`);
-  }
+  // if (userChatId) {
+  //   redirect(`/chat/${userChatId}`);
+  // }
 
   const id = generateUUID();
 
