@@ -65,6 +65,7 @@ export function Chat({
     experimental_throttle: 100,
     generateId: () => {
       const id = generateUUID();
+      pendingAssistantMessageIdRef.current = id;
       return id;
     },
     transport: new DefaultChatTransport({
@@ -72,7 +73,7 @@ export function Chat({
       fetch: fetchWithErrorHandlers,
       prepareSendMessagesRequest({ messages, id, body }) {
         // Pre-generate the assistant message ID so server can use the same ID
-        const assistantMessageId = pendingAssistantMessageIdRef.current;
+        const assistantMessageId = pendingAssistantMessageIdRef.current ?? generateUUID();
         return {
           body: {
             id,
