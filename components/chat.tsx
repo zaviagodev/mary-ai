@@ -154,7 +154,7 @@ export function Chat({
         <form className="flex mx-auto px-4 bg-background pb-4 md:pb-6 gap-2 w-full md:max-w-3xl">
           {/* Hide input and show message if more than 5 user messages */}
           {!isReadonly && (
-            userMessageCount >= 20 ? (
+            userMessageCount >= 50 ? (
               <div className="w-full text-center text-red-500 font-semibold py-4">
                 The limit for demo is exceeded. Please contact customer support at <a href="https://page.line.me/zaviago" className="underline text-blue-600" target="_blank" rel="noopener noreferrer">https://page.line.me/zaviago</a>
               </div>
