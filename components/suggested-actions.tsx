@@ -6,6 +6,7 @@ import { memo } from 'react';
 import type { UseChatHelpers } from '@ai-sdk/react';
 import type { VisibilityType } from './visibility-selector';
 import type { ChatMessage } from '@/lib/types';
+import { useTranslation } from '@/hooks/use-translation';
 
 interface SuggestedActionsProps {
   chatId: string;
@@ -18,16 +19,18 @@ function PureSuggestedActions({
   sendMessage,
   selectedVisibilityType,
 }: SuggestedActionsProps) {
+  const { t } = useTranslation();
+
   const suggestedActions = [
     {
-      title: 'Who are you ?',
-      label: 'give me a brief introduction',
-      action: 'Who are you ? give me a brief introduction',
+      title: t('suggestedActions.whoAreYou.title'),
+      label: t('suggestedActions.whoAreYou.label'),
+      action: t('suggestedActions.whoAreYou.action'),
     },
     {
-      title: 'What can you do ?',
-      label: `tell me about your capabilities`,
-      action: `What can you do ? tell me about your capabilities`,
+      title: t('suggestedActions.whatCanYouDo.title'),
+      label: t('suggestedActions.whatCanYouDo.label'),
+      action: t('suggestedActions.whatCanYouDo.action'),
     },
   ];
 

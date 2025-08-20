@@ -1,0 +1,110 @@
+{
+    "welcome": "Welcome",
+    "language": "Language",
+    "english": "English",
+    "thai": "Thai",
+    "chat": {
+        "title": "AI Chatbot",
+        "placeholder": "Type your message...",
+        "send": "Send",
+        "clear": "Clear chat",
+        "newChat": "New chat",
+        "thinking": "Thinking..."
+    },
+    "auth": {
+        "signIn": "Sign In",
+        "signOut": "Sign Out",
+        "signUp": "Sign Up",
+        "email": "Email",
+        "password": "Password",
+        "loginWith": "Login with {{provider}}",
+        "welcomeBack": "Welcome back!",
+        "createAccount": "Create your account"
+    },
+    "navigation": {
+        "home": "Home",
+        "chat": "Chat",
+        "history": "History",
+        "settings": "Settings"
+    },
+    "common": {
+        "loading": "Loading...",
+        "error": "Error",
+        "retry": "Retry",
+        "cancel": "Cancel",
+        "save": "Save",
+        "delete": "Delete",
+        "edit": "Edit",
+        "close": "Close",
+        "confirm": "Confirm"
+    },
+    "demo": {
+        "banner": "🚧 Demo System - Responses may be slower than the live system"
+    },
+    "suggestedActions": {
+        "whoAreYou": {
+            "title": "Who are you?",
+            "label": "give me a brief introduction",
+            "action": "Who are you? give me a brief introduction"
+        },
+        "whatCanYouDo": {
+            "title": "What can you do?",
+            "label": "tell me about your capabilities",
+            "action": "What can you do? tell me about your capabilities"
+        }
+    },
+    "greeting": {
+        "welcome": "Welcome to the Demo System 👋",
+        "description": "This is a trial version before connecting to your actual integrated chat system",
+        "instruction": "You can try it as if you were a customer contacting us, such as:",
+        "examples": {
+            "productInfo": "Inquiring about product information",
+            "returns": "Returns / exchanges",
+            "purchase": "Expressing purchase intentions"
+        },
+        "feedback": "If the AI's response doesn't meet your expectations, you can give feedback by pressing 👍 / 👎",
+        "improvement": "The Zaviago team will use your feedback for continuous improvement",
+        "note": "Note: The system may process slightly slower than the actual system"
+    },
+    "input": {
+        "placeholder": "Send a message...",
+        "waitForResponse": "Please wait for the model to finish its response!",
+        "uploadError": "Failed to upload file, please try again!"
+    },
+    "userNav": {
+        "guest": "Guest",
+        "loadingAuth": "Loading auth status",
+        "toggleDarkMode": "Toggle dark mode",
+        "toggleLightMode": "Toggle light mode",
+        "loginToAccount": "Login to your account",
+        "signOut": "Sign out",
+        "authStatusCheck": "Checking authentication status, please try again!"
+    },
+    "loginPage": {
+        "title": "Sign In",
+        "description": "Use your email and password to sign in",
+        "signInButton": "Sign in",
+        "invalidCredentials": "Invalid credentials!",
+        "validationFailed": "Failed validating your submission!",
+        "noAccount": "Don't have an account? ",
+        "signUp": "Sign up",
+        "signUpFree": " for free."
+    },
+    "registerPage": {
+        "title": "Sign Up",
+        "description": "Create an account with your email and password",
+        "signUpButton": "Sign Up",
+        "accountExists": "Account already exists!",
+        "createAccountFailed": "Failed to create account!",
+        "validationFailed": "Failed validating your submission!",
+        "accountCreated": "Account created successfully!",
+        "haveAccount": "Already have an account? ",
+        "signIn": "Sign in",
+        "signInInstead": " instead."
+    },
+    "authForm": {
+        "emailLabel": "Email Address",
+        "emailPlaceholder": "user@acme.com",
+        "passwordLabel": "Password"
+    }
+}

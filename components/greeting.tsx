@@ -1,6 +1,10 @@
+'use client';
+
 import { motion } from 'framer-motion';
+import { useTranslation } from '@/hooks/use-translation';
 
 export const Greeting = () => {
+  const { t } = useTranslation();
   return (
     <div
       key="overview"
@@ -13,9 +17,9 @@ export const Greeting = () => {
         transition={{ delay: 0.3 }}
         className="text-2xl font-semibold mb-4"
       >
-        ยินดีต้อนรับสู่ระบบทดลองใช้งาน 👋
+        {t('greeting.welcome')}
       </motion.div>
-      
+
       <motion.div
         initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
@@ -23,7 +27,7 @@ export const Greeting = () => {
         transition={{ delay: 0.4 }}
         className="text-base text-zinc-600 dark:text-zinc-400 mb-6 leading-relaxed"
       >
-        ระบบนี้เป็นเวอร์ชันทดลองก่อนเชื่อมต่อกับระบบรวมแชทของคุณจริง
+        {t('greeting.description')}
       </motion.div>
 
       <motion.div
@@ -33,7 +37,7 @@ export const Greeting = () => {
         transition={{ delay: 0.5 }}
         className="text-base text-zinc-700 dark:text-zinc-300 mb-4"
       >
-        คุณสามารถทดลองใช้งานได้เสมือนเป็นลูกค้าที่ติดต่อเข้ามา เช่น
+        {t('greeting.instruction')}
       </motion.div>
 
       <motion.ul
@@ -43,9 +47,9 @@ export const Greeting = () => {
         transition={{ delay: 0.6 }}
         className="text-base text-zinc-600 dark:text-zinc-400 mb-6 ml-4 space-y-2"
       >
-        <li>• สอบถามข้อมูลสินค้า</li>
-        <li>• ขอคืน / เปลี่ยนสินค้า</li>
-        <li>• แจ้งความต้องการซื้อสินค้า</li>
+        <li>• {t('greeting.examples.productInfo')}</li>
+        <li>• {t('greeting.examples.returns')}</li>
+        <li>• {t('greeting.examples.purchase')}</li>
       </motion.ul>
 
       <motion.div
@@ -55,7 +59,7 @@ export const Greeting = () => {
         transition={{ delay: 0.7 }}
         className="text-sm text-zinc-600 dark:text-zinc-400 mb-2"
       >
-        หากข้อความที่ AI ตอบยังไม่ตรงใจ สามารถกด 👍 / 👎 เพื่อให้ฟีดแบคได้เลย
+        {t('greeting.feedback')}
       </motion.div>
 
       <motion.div
@@ -65,7 +69,7 @@ export const Greeting = () => {
         transition={{ delay: 0.8 }}
         className="text-sm text-zinc-600 dark:text-zinc-400 mb-4"
       >
-        ทางทีมงาน Zaviago จะนำฟีดแบคของคุณไปปรับปรุงต่อไปค่ะ
+        {t('greeting.improvement')}
       </motion.div>
 
       <motion.div
@@ -75,7 +79,7 @@ export const Greeting = () => {
         transition={{ delay: 0.9 }}
         className="text-xs text-zinc-500 dark:text-zinc-500 italic border-t pt-4"
       >
-        หมายเหตุ: ระบบอาจประมวลผลช้ากว่าระบบจริงเล็กน้อย
+        {t('greeting.note')}
       </motion.div>
     </div>
   );
