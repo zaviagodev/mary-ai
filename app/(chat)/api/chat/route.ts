@@ -248,16 +248,23 @@ export async function POST(request: Request) {
         },
         generateId: generateUUID,
         onFinish: async ({ messages }) => {
-          console.log('[POST] onFinish saving messages:', messages);
-          await saveMessages({
-            messages: messages.map((message) => ({
-              id: message.role === 'assistant' ? assistantMessageId : message.id, // Use client-provided ID for assistant messages
-              role: message.role,
-              parts: message.parts,
-              createdAt: new Date(),
-              attachments: [],
-              chatId: id,
-            })),
+          // Use Next.js after() to prevent serverless function cleanup
+          after(async () => {
+            try {
+              const result = await saveMessages({
+                messages: messages.map((message) => ({
+                  id: message.role === 'assistant' ? assistantMessageId : message.id,
+                  role: message.role,
+                  parts: message.parts,
+                  createdAt: new Date(),
+                  attachments: [],
+                  chatId: id,
+                })),
+              });
+              console.log('[POST] Messages saved successfully in after()');
+            } catch (error) {
+              console.error('[POST] Error saving messages in after():', error);
+            }
           });
         },
         onError: (error) => {
